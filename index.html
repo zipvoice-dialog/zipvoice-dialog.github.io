@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="generator" content="Hugo 0.88.1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css">
+    <link rel="stylesheet" href="css/custom.css">
+    <link rel="stylesheet" href="css/normalize.css">
+
+    <title>ZipVoice-Dialog</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .dialogue-text-cell {
+            vertical-align: middle;
+            text-align: left;
+            padding: 0 15px;
+        }
+
+        .speaker-line {
+            display: block;
+            text-indent: -2.3em; /* Adjust based on your label width */
+            padding-left: 2em;  /* Adjust based on your label width */
+            margin-bottom: 0.5em; /* Optional: adds a little space between lines */
+        }
+
+        .speaker-label {
+            display: inline-block;
+            width: 2em; /* Adjust based on your label width for consistent alignment */
+            text-indent: 0;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+
+
+<body data-new-gr-c-s-check-loaded="14.1091.0" data-gr-ext-installed="">
+
+    <div class="container">
+        <header role="banner">
+        </header>
+        <main role="main">
+            <article itemscope itemtype="https://schema.org/BlogPosting">
+
+                <div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+                    <div class="text-center">
+                        <h2 style="font-size: 30px;">ZipVoice-Dialog⚡️</h2>
+						<h2 style="font-size: 25px;">Non-Autoregressive Spoken Dialogue Generation with Flow Matching</h2>
+                        <br>
+        <p>
+            <a href="https://github.com/k2-fsa/ZipVoice">Codes, models and Datasets</a>
+        </p>
+                    </div>
+                    <p><b>Abstract</b>
+                        Generating spoken dialogue is more challenging than monologue text-to-speech (TTS) due to the need for realistic turn-taking and distinct speaker timbres. Existing spoken dialogue generation models, being auto-regressive, suffer from slow and unstable inference. To overcome these limitations, we introduce ZipVoice-Dialog, a non-autoregressive zero-shot spoken dialogue generation model built upon flow matching. Key designs include: 1) speaker-turn embeddings for precise speaker turn-taking; 2) a curriculum learning strategy for stable speech-text alignment; 3) specialized strategies to enable stereo dialogue generation.
+                        Additionally, recognizing the lack of open-source large-scale spoken dialogue datasets, we curated OpenDialog, a 6.8k-hour spoken dialogue dataset from in-the-wild speech data. Furthermore, we established a benchmark to comprehensively evaluate various models.
+                        Experimental results demonstrate that ZipVoice-Dialog achieves superior performance in intelligibility, speaker turn-taking accuracy, speaker similarity, and inference speed. Our codes, model checkpoints, demo samples, and the OpenDialog dataset are all publicly available.
+                    </p>
+                    <br>
+                    <p>
+                        <b>Contents</b>
+                        <ul>
+                            <li><a href="#model-overview">Model Overview</a></li>
+                            <li><a href="#single_channel_english">Sinlge-Channel Dialogue Generation (English)</a></li>
+                            <li><a href="#single_channel_chinese">Sinlge-Channel Dialogue Generation (Chinese)</a></li>
+                            <li><a href="#stereo">Stereo Dialogue Generation</a></li>
+                        </ul>
+                    </p>
+                </div>
+
+
+                <div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+                    <h2 id="model-overview" style="text-align: center;">Model Overview</h2> <div style="display: flex; justify-content: center; align-items: center; gap: 30px; margin: 20px 0;">
+                        <div>
+                            <img src="pics/training.png" height="700" width="700" style="object-fit: contain;">
+                        </div>
+                        <div>
+                            <img src="pics/inference.png" height="700" width="700" style="object-fit: contain;">
+                        </div>
+
+                    </div>
+                    <p style="text-align: center; margin-top: 10px;">
+                        <b>Figure 1</b>: Illustration of ZipVoice-Dialog training (left) and inference (right).
+                    </p>
+                </div>
+
+                <div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+                    <h2 id="single_channel_english" style="text-align: center;">Sinlge-Channel Dialogue Generation (English)</h2>
+                    <p>Prompts and texts are from the test-dialog-en test set.</p>
+                    <div class="table-responsive pt-3" style="overflow-x: auto; max-width: 100%;">
+                        <table class="table table-hover pt-2" style="min-width: 1200px;">
+                            <thead>
+                                <tr>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 200px;">Prompt [S1]</th>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 200px;">Prompt [S2]</th>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 400px;">Text</th>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 300px;">ZipVoice-Dialog</th>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 300px;">Mooncast</th>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 300px;">Dia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/Group0078_S004_0-015-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/Group0078_S004_0-015-B.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td class="dialogue-text-cell">
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> I'm a big bookworm. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> Yeah, I have a few books- </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Yeah. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> ... that I've been trying to pick up, but, um, haven't had the time yet. But, um, I think I'll get into it at some point this summer. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Uh, what are the titles? </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> Oh, um, okay, well, one of them, it's, um, it's the, um, biography of, uh, Alexander Hamilton. I bought the book- </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Oh. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> ... when, when Hamilton first came out.</span>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/zipvoice-dialog/Group0078_S005_0-004.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/mooncast/Group0078_S005_0-004.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/dia/Group0078_S005_0-004.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/Group0078_S013_0-035-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/Group0078_S013_0-035-B.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td class="dialogue-text-cell">
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Yeah, well, what were, what were you gonna say? 'Cause I was just gonna change subject. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> Oh, well, I, I was just going to ask you, um, have you ever encountered any signs that you missed or any hints, like I did? </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Oh, not that I know of. Well, okay, for my life, oh my God, a sob story type, I'm just kidding. But, um, it's, it's always, um, uh, at least I, I have, I haven't known anyone to be interested, or like, if they did, they were, like, too subtle about it, you know? 'Cause, uh, I'm still on the, like, um, Yeah, like, uh, I mean, there's one person that I think maybe he could've been interested, but honestly, like, we're just, like, really close friends, so I don't know if, I, I don't even know if he was interested, you know? Um, it's just, um, it's just like occasionally, like, the, the vibes are like kinda off, but that's all.</span>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/zipvoice-dialog/Group0078_S013_0-027.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/mooncast/Group0078_S013_0-027.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/dia/Group0078_S013_0-027.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/Group0030_S004_0-015-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/Group0030_S004_0-015-B.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td class="dialogue-text-cell">
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> I know, it could be worse, but- </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> They didn't count the pages for you, right? </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Yeah, but, meh. What have you spent money on lately? </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> I actually haven't been spending money on games that much. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Oh, yeah, that's good.</span>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/zipvoice-dialog/Group0030_S004_0-029.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/mooncast/Group0030_S004_0-029.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/dia/Group0030_S004_0-029.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/Group0046_S009_0-016-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/Group0046_S009_0-016-B.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td class="dialogue-text-cell">
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Well, what was it, uh, like elementary to middle school, as long as I didn't fail, I was good. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> That was, yeah, that's, that was my mindset, uh, throughout high school. If you, if you pass it, uh, and you did your, and you did your best at the last, uh, at the final stretch, you have no shame. There's nothing to be shameful about. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Yeah, but, uh, in high school, I actually started worrying about, like, GPAs and all that. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> Oh, yeah. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Yeah, I'm not gonna lie, history, history class was, was a vibe, like.</span>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/zipvoice-dialog/Group0046_S009_0-005.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/mooncast/Group0046_S009_0-005.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/dia/Group0046_S009_0-005.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <br>
+                </div>
+
+
+                <div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+                    <h2 id="single_channel_english" style="text-align: center;">Sinlge-Channel Dialogue Generation (Chinese)</h2>
+                    <p>Prompts and texts are from the test-dialog-zh test set.</p>
+                    <div class="table-responsive pt-3" style="overflow-x: auto; max-width: 100%;">
+                        <table class="table table-hover pt-2" style="min-width: 1200px;">
+                            <thead>
+                                <tr>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 200px;">Prompt [S1]</th>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 200px;">Prompt [S2]</th>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 400px;">Text</th>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 300px;">ZipVoice-Dialog</th>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 300px;">Mooncast</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/CTS-CN-F2F-2019-11-11-423-014-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/CTS-CN-F2F-2019-11-11-423-014-B.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td class="dialogue-text-cell">
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 是的 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> 像这种情，像这种情况下，我感觉以后服务业肯定，应，应该是会越来越发达的 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 对这是必然的，但是因为我们人，人，人多的原因，所以说服，服务业可能就是发展得比较慢 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> 嗯，但是 但这种东西吧，我感觉肯定会发展，毕竟，毕竟这是一种趋势吧 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 对</span>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/zipvoice-dialog/CTS-CN-F2F-2019-11-11-423-005.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/mooncast/CTS-CN-F2F-2019-11-11-423-005.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/CTS-CN-F2F-2019-11-15-138-002-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/CTS-CN-F2F-2019-11-15-138-002-B.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td class="dialogue-text-cell">
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 好废呀，没什么用 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> 也不说没什么用吧 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 就还是得看自己吧，师傅领进门修行靠自身 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> 嗯 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 我能是什么样子都是这样子的</span>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/zipvoice-dialog/CTS-CN-F2F-2019-11-15-138-033.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/mooncast/CTS-CN-F2F-2019-11-15-138-033.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/CTS-CN-F2F-2019-11-15-27-020-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/CTS-CN-F2F-2019-11-15-27-020-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td class="dialogue-text-cell">
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 我也觉得好像是，因为好像到最后齐铭，就是那个男二呀 还有那个顾森西啊好像都转学了 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> 嗯 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 就证明好像那个女的那个女主好像已经不在了，就真的被那个河水给淹死了好像对吧？ 然后就像那个年少的你，我前面说的那个也是这种题材的嘛。 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> 嗯 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 就是那个女的是</span>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/zipvoice-dialog/CTS-CN-F2F-2019-11-15-27-026.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/mooncast/CTS-CN-F2F-2019-11-15-27-026.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/CTS-CN-F2F-2019-11-15-17-080-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/prompt/CTS-CN-F2F-2019-11-15-17-080-B.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td class="dialogue-text-cell">
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 那变成个那样的，你不觉得搞笑 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> 三个人 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 铁三角 怎么成为黄金铁三角无法理解，我猜那女的暴力型看那个女的 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> 那个女的七十多级 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 那他就负责指导嘛那 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> 那二龙和大师两个人是同一个宗门的 </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> 嗯，二龙和大师他们是哪个宗门的？ </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> 蓝电霸王龙的</span>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/zipvoice-dialog/CTS-CN-F2F-2019-11-15-17-051.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/mooncast/CTS-CN-F2F-2019-11-15-17-051.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <br>
+                </div>
+
+
+                <div class="container pt-5 mt-5 shadow-lg p-5 mb-5 bg-white rounded">
+                    <h2 id="single_channel-shot" style="text-align: center;">Stereo Dialogue Generation</h2>
+                    <p>Stereo prompts and texts are from the test-dialog-en test sets, which is constructed from a stereo speech dataset.</p>
+                    <div class="table-responsive pt-3" style="overflow-x: auto; max-width: 100%;">
+                        <table class="table table-hover pt-2" style="min-width: 1200px;">
+                            <thead>
+                                <tr>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 200px;">Prompt [S1]</th>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 200px;">Prompt [S2]</th>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 400px;">Text</th>
+                                    <th style="vertical-align: middle; text-align: center; min-width: 300px;">ZipVoice-Dialog-Stereo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/stereo-prompt/Group0078_S004_0-015-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/stereo-prompt/Group0078_S004_0-015-B.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td class="dialogue-text-cell">
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> I'm a big bookworm. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> Yeah, I have a few books- </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Yeah. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> ... that I've been trying to pick up, but, um, haven't had the time yet. But, um, I think I'll get into it at some point this summer. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Uh, what are the titles? </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> Oh, um, okay, well, one of them, it's, um, it's the, um, biography of, uh, Alexander Hamilton. I bought the book- </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Oh. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> ... when, when Hamilton first came out.</span>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/zipvoice-dialog-stereo/Group0078_S005_0-004.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/stereo-prompt/Group0078_S013_0-035-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/stereo-prompt/Group0078_S013_0-035-B.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td class="dialogue-text-cell">
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Yeah, well, what were, what were you gonna say? 'Cause I was just gonna change subject. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> Oh, well, I, I was just going to ask you, um, have you ever encountered any signs that you missed or any hints, like I did? </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Oh, not that I know of. Well, okay, for my life, oh my God, a sob story type, I'm just kidding. But, um, it's, it's always, um, uh, at least I, I have, I haven't known anyone to be interested, or like, if they did, they were, like, too subtle about it, you know? 'Cause, uh, I'm still on the, like, um, Yeah, like, uh, I mean, there's one person that I think maybe he could've been interested, but honestly, like, we're just, like, really close friends, so I don't know if, I, I don't even know if he was interested, you know? Um, it's just, um, it's just like occasionally, like, the, the vibes are like kinda off, but that's all.</span>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/zipvoice-dialog-stereo/Group0078_S013_0-027.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/stereo-prompt/Group0030_S004_0-015-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/stereo-prompt/Group0030_S004_0-015-B.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td class="dialogue-text-cell">
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> I know, it could be worse, but- </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> They didn't count the pages for you, right? </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Yeah, but, meh. What have you spent money on lately? </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> I actually haven't been spending money on games that much. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Oh, yeah, that's good.</span>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/zipvoice-dialog-stereo/Group0030_S004_0-029.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/stereo-prompt/Group0046_S009_0-016-A.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/stereo-prompt/Group0046_S009_0-016-B.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                    <td class="dialogue-text-cell">
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Well, what was it, uh, like elementary to middle school, as long as I didn't fail, I was good. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> That was, yeah, that's, that was my mindset, uh, throughout high school. If you, if you pass it, uh, and you did your, and you did your best at the last, uh, at the final stretch, you have no shame. There's nothing to be shameful about. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Yeah, but, uh, in high school, I actually started worrying about, like, GPAs and all that. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S2]</span> Oh, yeah. </span>
+                                        <span class="speaker-line"><span class="speaker-label">[S1]</span> Yeah, I'm not gonna lie, history, history class was, was a vibe, like.</span>
+                                    </td>
+                                    <td style="vertical-align: middle; text-align: center;">
+                                        <audio controls style="width: 100%;"><source src="audios/zipvoice-dialog-stereo/Group0046_S009_0-005.wav">Your browser does not support the audio element.</audio>
+                                    </td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <br>
+                </div>
+
+            </article>
+        </main>
+    </div>
+
+</body>
+
+</html>
